@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Muse","version":"7.7.1","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="1.https的目的和建立原理 ✅2.openresty如何建立https站点 ❌  想法：https是不是绝对的安全，如果绝对安全，所有网站无脑用https，为啥还会有安全问题&#x3D;。然后还有一个问题就是，网站用https，测试怎么测加密的东西， client -&gt; charles geteway(hacker) -&gt; server">
+<meta property="og:type" content="article">
+<meta property="og:title" content="建立https站点">
+<meta property="og:url" content="http://yoursite.com/2020/02/24/%E5%BB%BA%E7%AB%8Bhttps%E7%AB%99%E7%82%B9/index.html">
+<meta property="og:site_name" content="edsonlin&#39;blog">
+<meta property="og:description" content="1.https的目的和建立原理 ✅2.openresty如何建立https站点 ❌  想法：https是不是绝对的安全，如果绝对安全，所有网站无脑用https，为啥还会有安全问题&#x3D;。然后还有一个问题就是，网站用https，测试怎么测加密的东西， client -&gt; charles geteway(hacker) -&gt; server">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2020-02-24T04:39:27.000Z">
+<meta property="article:modified_time" content="2020-02-24T06:57:52.446Z">
+<meta property="article:author" content="Edson Lin">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://yoursite.com/2020/02/24/%E5%BB%BA%E7%AB%8Bhttps%E7%AB%99%E7%82%B9/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>建立https站点 | edsonlin'blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">edsonlin'blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+  </div>
+
+  <div class="site-nav-right"></div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+  </ul>
+
+</nav>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/02/24/%E5%BB%BA%E7%AB%8Bhttps%E7%AB%99%E7%82%B9/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://pic.qqtn.com/up/2020-2/2020020710111631417.jpg">
+      <meta itemprop="name" content="Edson Lin">
+      <meta itemprop="description" content="失业菜🐶">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="edsonlin'blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          建立https站点
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2020-02-24 12:39:27 / 修改时间：14:57:52" itemprop="dateCreated datePublished" datetime="2020-02-24T12:39:27+08:00">2020-02-24</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/nginx/" itemprop="url" rel="index">
+                    <span itemprop="name">nginx</span>
+                  </a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>1.https的目的和建立原理 ✅<br>2.openresty如何建立https站点 ❌</p>
+<blockquote>
+<p>想法：<br>https是不是绝对的安全，如果绝对安全，所有网站无脑用https，为啥还会有安全问题=。<br>然后还有一个问题就是，网站用https，测试怎么测加密的东西， client -&gt; charles geteway(hacker) -&gt; server </p>
+</blockquote>
+<a id="more"></a>
+
+<hr>
+<h3 id="https的目的和建立原理"><a href="#https的目的和建立原理" class="headerlink" title="https的目的和建立原理"></a>https的目的和建立原理</h3><p>网络上的http报文需要加密，不能明码传输<br>这时候先人设计出来ssl协议，进行http上层加密<br>现在的既定事实是一个站点需要进行加密的内容 进行原来的 http (p:80) -&gt; ssl (p:443)<br>然后探究ssl协议，也就是加密的内容</p>
+<p>现在我们提出一个需求：<code>对我们互联网报文进行加密</code></p>
+<p>首先现在的一些加密算法：对称算法和非对称算法</p>
+<p>菜🐶表示大学知识都忘了。。。<br>只有一个结论</p>
+<h4 id="对称加密"><a href="#对称加密" class="headerlink" title="对称加密"></a>对称加密</h4><p>对称加密： 一把钥匙，客户端和服务端用规定好的一种协议传输文章<br>但是，如果直接引用到我们的互联网上，就会存在一个问题，这把钥匙保存哪里<br>如果</p>
+<ol>
+<li>这把钥匙是S -&gt; C1, S -&gt; C2 ….<br>问题：服务到对所有客户端都通用，所有人都知道这把钥匙，那就没有意义了</li>
+<li>服务端对每个客户端都配置好一把钥匙<br>问题：服务端什么时候给客户端这个🔑呢？<br>2.1 客户端联系服务端的时候，服务端分配一把🔑给（发送）客户端<br>问题：注意，分配之后的钥匙，是要通过互联网发送的，所以还是会用被窃取的可能<br>2.2 服务端一开始就分配给客户端一把钥匙<br>问题：客户端可能无限多，服务端怎么线下分配呀。。。</li>
+</ol>
+<p><strong>结论： 直接用对称加密 ❌</strong></p>
+<hr>
+<h4 id="非对成加密"><a href="#非对成加密" class="headerlink" title="非对成加密"></a>非对成加密</h4><p>非对称加密： 一个看上去很神奇的东西，一开始用数学的方法产生一个公钥和私钥</p>
+<p>公钥加密的数据 只能用私钥进行解密<br>私钥加密的数据 只能用公钥进行解密</p>
+<p>只要记住上面的结论就可以了</p>
+<p>还要一个问题，私钥可以反推出公钥？？？<br>（这个结论我存疑哈，因为现实一般私钥存在服务端，公钥用来分发给客户端，所以看起来私钥比较重要，但是呢，这样，私钥又变得无敌重要，私钥可以解密一切，看上去又没啥不对，哈哈哈）</p>
+<ol>
+<li><p>然后呢，我们“在服务端产生一对公钥和私钥”，用来给ssl协议使用<br>（实际上呢，在搭建https站点中，我并没有用算法，产生一对密钥对，所以我怀疑这一对密钥对，在系统搭建的时候，就已经产生了，或者写死在硬件中了，网卡？）</p>
+</li>
+<li><p>我们通过互联网传播的形式，把公钥传播给客户端，之后客户端返回给服务端的内容都是用公钥加密的<br>这个看起来十分的完美呀，因为，之后客户端传回去的内容都是加密的，只能用客户端的私钥进行解密<br>比如 服务端(baidu.com)  客户端（edsonlin）</p>
+<blockquote>
+<p>2.1 edsonlin: 先告诉baidu hello,快给我你的公钥吧<br>2.2 baidu: hello,这是我的公钥<br>2.3 edsonlin: xxx (内容用公钥加密)<br>2.4 baidu: xxx(内容用私钥加密)<br>…</p>
+</blockquote>
+</li>
+</ol>
+<p>通信其实就是双向的，我们上面的问题，2.4 baidu返回的内容，用自己的私钥加密，但是任何的公钥都解密他返回edson的内容的</p>
+<p><strong>结论： 直接用对称加密 ❌</strong></p>
+<hr>
+<h4 id="对称加密和非对称加密结合使用"><a href="#对称加密和非对称加密结合使用" class="headerlink" title="对称加密和非对称加密结合使用"></a>对称加密和非对称加密结合使用</h4><p>我们还是看这个场景<br>比如 服务端(baidu.com)  客户端（edsonlin）</p>
+<blockquote>
+<ol>
+<li>edsonlin: 先告诉baidu hello,快给我你的公钥吧</li>
+<li>baidu: hello,这是我的公钥</li>
+<li>edsonlin: 这是我产生的钥匙key，我用你的公钥，先给我的key进行加密了，产生keyP，我发送你keyP, 以后的内容我都用keyP机密了</li>
+<li>baidu: keP我先用私钥进行解密，拿到key了</li>
+<li>edsonlin: xxx(内容用key加密)</li>
+<li>baidu: xxx(内容用key加密)</li>
+</ol>
+</blockquote>
+<p>注意key使用对称加密的算法对之后内容进行的</p>
+<p>这个看上去就异常的完美，先用<code>(非对称加密)的算法对((对称加密)的密钥)加密</code>但是呢，还会有一个问题，</p>
+<p>1 到 2 的过程<br><code>edsonli -&gt; baidu</code><br>如果有个中间人 hacker<br><code>edsonlin -&gt; hacker -&gt; baidu</code><br>hacker在1.1中知道edsonlin想要baidu的公钥<br>然后，他告诉edsonlin自己的公钥，同时又问baidu要公钥</p>
+<p>之后呢，1.3也就被污染了,本质上edsonlin用了hacker的公钥加密了自己的钥匙，之后hacker用自己的私钥进行解密得出key，这样，后面的key解密的内容，hacker完全知道</p>
+<p><a href="https://www.zhihu.com/lives/980019489873797120" target="_blank" rel="noopener">ps.中间人如何产生，可以查询dns攻击，不衍生了。。。</a></p>
+<p>我们重新看上面的问题，到底出在哪里呢？</p>
+<p>仔细思考的话，会发现，本质上，我们在2.1-&gt;2.2之后，不能保证edsonlin拿到的就是baidu的公钥对吧<br><strong>那解决的思路就如何保证客户端拿到的就baidu的公钥呢？</strong></p>
+<hr>
+<h4 id="CA认证"><a href="#CA认证" class="headerlink" title="CA认证"></a>CA认证</h4><p>思路：</p>
+<ul>
+<li>我们去权威机构那里去申请一个公钥证书，假设我们去公安局申请一个身份证，身份证里面有防伪的东东</li>
+<li>客户端拿到公钥证书之后，通过防伪操作认证之后，觉得这是真的，我们可以信任证书的上的公钥是正确的，那之后的key就用这个加密吧</li>
+</ul>
+<p>然后我们再思考一下这个公钥证书的原理？本质上，这个还是数据的东西，还是很虚的东西，不是防伪标示之类的物理性质的东东</p>
+<p>我们直接看现实中，这个证书是怎么搞的吧，说它的实现思路，可能有点绕。。。</p>
+<ol>
+<li>权威机构用它的<code>私钥</code>对 （申请要上https的服务器）的<code>公钥</code>进行 加密<br>这里不是谁都可以用的哈，权威机构肯定要给服务器端所有者个人，公司查户口，它那边就要服务器有源可查</li>
+<li>权威机构给所有操作系统分配它的<code>公钥</code><br>什么时候给操作系统分配的呢，其实你可以理解为，电脑买来的时候就有了，操作系和权威系统勾结在一起，直接在一开始就给系统写死了无数个<code>公钥</code>,因为公钥和私钥是一一对应的，我们猜测权威机构的私钥库总会用完的呀。。。</li>
+<li>有个小点要注意，1中权威机构给服务器的证书，里面包含<ul>
+<li>服务器公钥</li>
+<li>服务器公钥的hash值 </li>
+<li>服务器的基本信息，域名等</li>
+</ul>
+</li>
+</ol>
+<p>上述内容用权威机构的私钥加密</p>
+<p>然后<br>我们还是看这个场景<br>比如 服务端(baidu.com)  客户端（edsonlin）</p>
+<blockquote>
+<ol>
+<li>edsonlin: 先告诉baidu hello,快给我你的证书</li>
+<li>baidu: hello,这是我的证书</li>
+<li>edsonlin: 这是我产生的钥匙key，我用你证书标明的公钥，先给我的key进行加密了，产生keyP，我发送你keyP, 以后的内容我都用keyP机密了</li>
+<li>baidu: keP我先用私钥进行解密，拿到key了</li>
+<li>edsonlin: xxx(内容用key加密)</li>
+<li>baidu: xxx(内容用key加密)</li>
+</ol>
+</blockquote>
+<p>然后我们在看1 -&gt; 2 的过程</p>
+<p><code>edsonlin -&gt; hacker -&gt; baidu</code></p>
+<blockquote>
+<ol>
+<li>hacker在中间可以拿到baidu的公钥证书</li>
+<li>hacker用内置在他操作系统的权威机构的公钥去解密出baidu的证书<br>得到以下内容</li>
+</ol>
+</blockquote>
+<ul>
+<li>baidu公钥</li>
+<li>baidu公钥的hash值 </li>
+<li>baidu的基本信息，域名等</li>
+</ul>
+<p>这时候，hacker要把baidude公钥替换成自己的公钥，之后把里面的内容再打包造假称虚构的baidu证书<br>但是呢，问题来了，它木有权威机构的私钥，如果它用自己伪造私钥对伪造的内容打包，返回给edsonlin<br>edsonlin操作系统内置的权威系统公钥集，不能对伪造的私钥进行机密，浏览器就会显示，我不认识这个证书呀</p>
+<p><strong>结论： 对称加密 + 对称机密 + CA ✅</strong></p>
+<p>还是有个小问题，如果hacker的伪造证书的公钥，如果也被浏览器（后期，不是内置，是可以操作的）信息，浏览器就就会说我认证这个证书呀，那证书里面的公钥，我也信任吧。。。所以，我们不要信任非内置的证书颁布着。。。</p>
+<p><a href="https://www.zhihu.com/question/22651987/answer/968239218" target="_blank" rel="noopener">这里还有一个小知识点，这个hash到底是用来干嘛的，md5的算法。。。不衍生开了</a></p>
+<hr>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/02/23/hexo%E4%BD%BF%E7%94%A8%E6%94%BB%E7%95%A5/" rel="prev" title="hexo使用攻略">
+      <i class="fa fa-chevron-left"></i> hexo使用攻略
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#https的目的和建立原理"><span class="nav-number">1.</span> <span class="nav-text">https的目的和建立原理</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#对称加密"><span class="nav-number">1.1.</span> <span class="nav-text">对称加密</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#非对成加密"><span class="nav-number">1.2.</span> <span class="nav-text">非对成加密</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#对称加密和非对称加密结合使用"><span class="nav-number">1.3.</span> <span class="nav-text">对称加密和非对称加密结合使用</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#CA认证"><span class="nav-number">1.4.</span> <span class="nav-text">CA认证</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Edson Lin"
+      src="https://pic.qqtn.com/up/2020-2/2020020710111631417.jpg">
+  <p class="site-author-name" itemprop="name">Edson Lin</p>
+  <div class="site-description" itemprop="description">失业菜🐶</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">3</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">1</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Edson Lin</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v4.2.0
+  </div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> v7.7.1
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
