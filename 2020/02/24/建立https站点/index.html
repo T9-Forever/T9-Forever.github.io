@@ -28,8 +28,11 @@
 <meta property="og:description" content="1.https的目的和建立原理 ✅2.openresty如何建立https站点 ❌  想法：https是不是绝对的安全，如果绝对安全，所有网站无脑用https，为啥还会有安全问题&#x3D;。然后还有一个问题就是，网站用https，测试怎么测加密的东西， client -&gt; charles geteway(hacker) -&gt; server">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2020-02-24T04:39:27.000Z">
-<meta property="article:modified_time" content="2020-02-24T06:57:52.446Z">
+<meta property="article:modified_time" content="2020-02-24T07:07:24.208Z">
 <meta property="article:author" content="Edson Lin">
+<meta property="article:tag" content="https">
+<meta property="article:tag" content="nginx">
+<meta property="article:tag" content="openresty">
 <meta name="twitter:card" content="summary">
 
 <link rel="canonical" href="http://yoursite.com/2020/02/24/%E5%BB%BA%E7%AB%8Bhttps%E7%AB%99%E7%82%B9/">
@@ -179,7 +182,7 @@
               <span class="post-meta-item-text">发表于</span>
               
 
-              <time title="创建时间：2020-02-24 12:39:27 / 修改时间：14:57:52" itemprop="dateCreated datePublished" datetime="2020-02-24T12:39:27+08:00">2020-02-24</time>
+              <time title="创建时间：2020-02-24 12:39:27 / 修改时间：15:07:24" itemprop="dateCreated datePublished" datetime="2020-02-24T12:39:27+08:00">2020-02-24</time>
             </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -304,6 +307,15 @@
 <p>还是有个小问题，如果hacker的伪造证书的公钥，如果也被浏览器（后期，不是内置，是可以操作的）信息，浏览器就就会说我认证这个证书呀，那证书里面的公钥，我也信任吧。。。所以，我们不要信任非内置的证书颁布着。。。</p>
 <p><a href="https://www.zhihu.com/question/22651987/answer/968239218" target="_blank" rel="noopener">这里还有一个小知识点，这个hash到底是用来干嘛的，md5的算法。。。不衍生开了</a></p>
 <hr>
+<h3 id="openresty如何建立https站点"><a href="#openresty如何建立https站点" class="headerlink" title="openresty如何建立https站点"></a>openresty如何建立https站点</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">1. centos</span><br><span class="line">2. yum install python2-certbot-nginx</span><br><span class="line">3. certbot --nginx --nginx-server-root&#x3D;&#x2F;user&#x2F;local&#x2F;openresty&#x2F;nginx&#x2F;conf&#x2F; -d edsonlin.top</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+
+
+
 
     </div>
 
@@ -312,6 +324,11 @@
     
 
       <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/https/" rel="tag"># https</a>
+              <a href="/tags/nginx/" rel="tag"># nginx</a>
+              <a href="/tags/openresty/" rel="tag"># openresty</a>
+          </div>
 
         
 
@@ -382,7 +399,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#https的目的和建立原理"><span class="nav-number">1.</span> <span class="nav-text">https的目的和建立原理</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#对称加密"><span class="nav-number">1.1.</span> <span class="nav-text">对称加密</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#非对成加密"><span class="nav-number">1.2.</span> <span class="nav-text">非对成加密</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#对称加密和非对称加密结合使用"><span class="nav-number">1.3.</span> <span class="nav-text">对称加密和非对称加密结合使用</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#CA认证"><span class="nav-number">1.4.</span> <span class="nav-text">CA认证</span></a></li></ol></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#https的目的和建立原理"><span class="nav-number">1.</span> <span class="nav-text">https的目的和建立原理</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#对称加密"><span class="nav-number">1.1.</span> <span class="nav-text">对称加密</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#非对成加密"><span class="nav-number">1.2.</span> <span class="nav-text">非对成加密</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#对称加密和非对称加密结合使用"><span class="nav-number">1.3.</span> <span class="nav-text">对称加密和非对称加密结合使用</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#CA认证"><span class="nav-number">1.4.</span> <span class="nav-text">CA认证</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#openresty如何建立https站点"><span class="nav-number">2.</span> <span class="nav-text">openresty如何建立https站点</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -411,7 +428,7 @@
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">1</span>
+        <span class="site-state-item-count">4</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
